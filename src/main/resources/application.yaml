@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT:9000}
+
+spring:
+  application:
+    name: hackaton-template
+
+  r2dbc:
+    # --- Local (H2) - configuración activa por defecto ---
+    url: ${R2DBC_URL:r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USER:${R2DBC_USERNAME:${SECRET_USERNAME:sa}}}
+    password: ${DB_PASSWORD:${R2DBC_PASSWORD:${SECRET_PASSWORD:password}}}
+
+    # --- Docker Compose (PostgreSQL) - descomentar y comentar el bloque H2 de arriba ---
+    # url: r2dbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:hackaton}
+    # username: ${DB_USER:hackaton}
+    # password: ${DB_PASSWORD:hackaton}
+
+  sql:
+    init:
+      schema-locations: classpath:schema.sql
+      mode: ${SPRING_SQL_INIT_MODE:always}
+
+
+  # --- Kubernetes + Neon (PostgreSQL) ---
+  # spring:
+  #   r2dbc:
+  #     url: r2dbc:postgresql://ep-falling-pond-atsm99qj.c-9.us-east-1.aws.neon.tech:5432/neondb?sslMode=require
+  #     username: neondb_owner
+  #     password: npg_ahoDeY8LT9Xy
+  #   sql:
+  #     init:
+  #       mode: never
+  #   autoconfigure:
+  #     exclude:
+  #       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  #       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration

@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hackaton-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hackaton}
+      POSTGRES_USER: ${DB_USER:-hackaton}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hackaton}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hackaton} -d ${DB_NAME:-hackaton}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - hackaton-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hackaton-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-9000}:9000"
+    environment:
+      R2DBC_URL: r2dbc:postgresql://postgres:5432/${DB_NAME:-hackaton}
+      R2DBC_USERNAME: ${DB_USER:-hackaton}
+      R2DBC_PASSWORD: ${DB_PASSWORD:-hackaton}
+      SPRING_SQL_INIT_MODE: never
+      SPRING_AUTOCONFIGURE_EXCLUDE: >-
+        org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,
+        org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hackaton-network
+
+volumes:
+  postgres_data:
+    name: hackaton-postgres-data
+
+networks:
+  hackaton-network:
+    name: hackaton-network
+    driver: bridge

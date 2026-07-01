@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackaton-api
+  namespace: hackaton
+  labels:
+    app: hackaton-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackaton-api
+  template:
+    metadata:
+      labels:
+        app: hackaton-api
+    spec:
+      containers:
+        - name: hackaton-api
+          image: andrehermoza/hackaton-template:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+          env:
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: hackaton-config
+                  key: SERVER_PORT
+            - name: SPRING_SQL_INIT_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: hackaton-config
+                  key: SPRING_SQL_INIT_MODE
+            - name: SPRING_AUTOCONFIGURE_EXCLUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: hackaton-config
+                  key: SPRING_AUTOCONFIGURE_EXCLUDE
+            - name: R2DBC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: R2DBC_URL
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_PASSWORD
+            - name: DB_SSL_MODE
+              valueFrom:
+                secretKeyRef:
+                  name: hackaton-secret
+                  key: DB_SSL_MODE
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 9000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 15
