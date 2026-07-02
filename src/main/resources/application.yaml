@@ -16,6 +16,12 @@ spring:
     # username: ${DB_USER:hackaton}
     # password: ${DB_PASSWORD:hackaton}
 
+    # --- Docker Compose (MySQL) - opcional, descomentar si usas el servicio mysql del compose ---
+    # Requiere dependencia: io.asyncer:r2dbc-mysql
+    # url: r2dbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:hackaton}
+    # username: ${DB_USER:hackaton}
+    # password: ${DB_PASSWORD:hackaton}
+
   sql:
     init:
       schema-locations: classpath:schema.sql
@@ -35,3 +41,8 @@ spring:
   #     exclude:
   #       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
   #       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
+# --- Docker Compose (Nginx) - opcional ---
+# Si usas el servicio nginx del compose, la API queda detrás del proxy en el puerto 80.
+# Ejemplo de acceso: http://localhost/api/productos
+# No requiere cambios en spring; nginx redirige hacia api:9000.

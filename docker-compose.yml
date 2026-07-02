@@ -40,12 +40,66 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # mysql:
+      #   condition: service_healthy
     networks:
       - hackaton-network
+
+  # --- MySQL (opcional) ---
+  # Descomentar este servicio y comentar postgres si deseas usar MySQL.
+  # Requiere agregar la dependencia io.asyncer:r2dbc-mysql en pom.xml
+  # y adaptar schema.sql a sintaxis MySQL.
+  #
+  # mysql:
+  #   image: mysql:8.4
+  #   container_name: hackaton-mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+  #     MYSQL_DATABASE: ${MYSQL_DATABASE:-hackaton}
+  #     MYSQL_USER: ${MYSQL_USER:-hackaton}
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-hackaton}
+  #   ports:
+  #     - "${MYSQL_PORT:-3306}:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #     - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER:-hackaton}", "-p${MYSQL_PASSWORD:-hackaton}"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 20s
+  #   networks:
+  #     - hackaton-network
+  #
+  # En el servicio api, comentar las variables de postgres y usar:
+  #   R2DBC_URL: r2dbc:mysql://mysql:3306/${MYSQL_DATABASE:-hackaton}
+  #   R2DBC_USERNAME: ${MYSQL_USER:-hackaton}
+  #   R2DBC_PASSWORD: ${MYSQL_PASSWORD:-hackaton}
+
+  # --- Nginx (opcional) ---
+  # Descomentar para exponer la API por el puerto 80 como reverse proxy.
+  # Acceso: http://localhost/api/estudiantes
+  #
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: hackaton-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${NGINX_PORT:-80}:80"
+  #   volumes:
+  #     - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - hackaton-network
 
 volumes:
   postgres_data:
     name: hackaton-postgres-data
+  # mysql_data:
+  #   name: hackaton-mysql-data
 
 networks:
   hackaton-network:
